@@ -43,6 +43,7 @@ module Puma
     attr_accessor :persistent_timeout
     attr_accessor :auto_trim_time
     attr_accessor :reaping_time
+    attr_accessor :fillup_time
     attr_accessor :first_data_timeout
 
     # Create a server for the rack app +app+.
@@ -65,6 +66,7 @@ module Puma
       @max_threads = 16
       @auto_trim_time = 30
       @reaping_time = 1
+      @fillup_time = 1
 
       @thread = nil
       @thread_pool = nil
@@ -346,6 +348,10 @@ module Puma
 
       if @auto_trim_time
         @thread_pool.auto_trim!(@auto_trim_time)
+      end
+
+      if @fillup_time
+        @thread_pool.auto_fillup!(@fillup_time)
       end
 
       @events.fire :state, :running
