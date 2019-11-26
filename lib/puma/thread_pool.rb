@@ -243,6 +243,15 @@ module Puma
       end
     end
 
+    # If there's fewer threads than minimum thread count, spawn new worker thread.
+    def fillup
+      @mutex.synchronize do
+        if @spawned < @min
+          spawn_thread
+        end
+      end
+    end
+
     class Automaton
       def initialize(pool, timeout, thread_name, message)
         @pool = pool
@@ -277,7 +286,13 @@ module Puma
 
     def auto_reap!(timeout=5)
       @reaper = Automaton.new(self, timeout, "threadpool reaper", :reap)
+      puts "auto_reap started with timeout: #{timeout}"
       @reaper.start!
+    end
+
+    def auto_fillup!(timeout=5)
+      @fillup = Automaton.new(self, timeout, "threadpool fillup", :rebirth)
+      @fillup.start!
     end
 
     # Tell all threads in the pool to exit and wait for them to finish.
